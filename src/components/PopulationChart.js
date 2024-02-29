@@ -20,19 +20,25 @@ const PopulationChart = () => {
   const [chartOptions, setChartOptions] = useState({});
   const [currentYear, setCurrentYear] = useState(1950);
   const [data, setData] = useState([]); // สมมติว่านี่คือข้อมูลที่ได้จาก API
+  const yearsRange = Array.from({ length: 2022 - 1950 }, (_, i) => 1950 + i);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetchCountries(); // ตรวจสอบว่า fetchCountries คือ async function
+        const response = await fetchCountries();
         console.log("response data==>", response);
-        setData(response); // อาจต้องปรับเปลี่ยนตามโครงสร้างข้อมูลที่ response ส่งกลับมา
+        setData(response); 
       } catch (error) {
         console.log(error);
       }
     };
+
     setChartOptions({
-      indexAxis: "y", // แกน Y เป็นแกนหลักสำหรับกราฟแนวนอน
+      animation: {
+        duration: 500, // ระยะเวลาของ animation เป็น milliseconds
+        easing: "easeInOutQuart", // ประเภทของการเปลี่ยนแปลง animation
+      },
+      indexAxis: "y",
       scales: {
         y: {
           title: {
@@ -44,6 +50,12 @@ const PopulationChart = () => {
           title: {
             display: true,
             text: "Population",
+          },
+          ticks: {
+            // แสดงแต่ละปีบนแกน X
+            callback: function (value, index, values) {
+              return yearsRange[index];
+            },
           },
         },
       },
@@ -62,32 +74,53 @@ const PopulationChart = () => {
   }, []);
 
   useEffect(() => {
-    const filteredData = data.filter(
-      (item) => parseInt(item["Year"]) === currentYear
-    );
-    if (filteredData.length > 0) {
-      const processedData = processChartData(filteredData);
-      setChartData(processedData);
+    if (data.length > 0) {
+      const processedData = processChartData(data, currentYear);
+      updateChartDataSmoothly(processedData);
     }
-  }, [currentYear, data]);
+  }, [data, currentYear]);
 
-  function processChartData(filteredData) {
-    const labels = filteredData.map((item) => item["Country name"]);
-    const populationData = filteredData.map((item) =>
-      parseInt(item["Population"])
-    );
+  const updateChartDataSmoothly = (newData) => {
+    setChartData(prevChartData => {
+      if (prevChartData.datasets.length > 0) {
+        const updatedDatasets = prevChartData.datasets.map((dataset, index) => {
+          return {
+            ...dataset, // รักษาค่าที่มีอยู่ใน dataset (รวมถึง backgroundColor, borderColor)
+            data: newData.datasets[index]?.data || [], // อัปเดตข้อมูลใหม่
+          };
+        });
+  
+        return {
+          ...prevChartData,
+          labels: newData.labels, // อัปเดต labels ใหม่
+          datasets: updatedDatasets,
+        };
+      } else {
+        // ถ้าไม่มี datasets มาก่อน, ใช้ newData ที่สร้างมาใหม่
+        return newData;
+      }
+    });
+  };
+  
 
+  function processChartData(data, year) {
+    const sortedData = data
+      .filter((item) => parseInt(item["Year"]) === year)
+      .sort((a, b) => b.Population - a.Population)
+      .slice(0, 12);
+  
+    const labels = sortedData.map((item) => item["Country name"]);
+    const populationData = sortedData.map((item) => parseInt(item["Population"]));
+  
     return {
-      labels,
-      datasets: [
-        {
-          label: "Population",
-          data: populationData,
-          backgroundColor: "rgba(53, 162, 235, 0.5)",
-          borderColor: "rgb(53, 162, 235)",
-          borderWidth: 1,
-        },
-      ],
+      labels: labels,
+      datasets: [{
+        label: `Population in ${year}`,
+        data: populationData,
+        backgroundColor: "rgba(53, 162, 235, 0.5)",
+        borderColor: "rgb(53, 162, 235)",
+        borderWidth: 1,
+      }],
     };
   }
 
@@ -98,19 +131,25 @@ const PopulationChart = () => {
         clearInterval(intervalId);
       } else {
         setCurrentYear(year);
+        const processedData = processChartData(data, year);
+        updateChartDataSmoothly(processedData);
         year++;
       }
-    }, 500); // ตั้งค่าเวลาตามความเร็วที่คุณต้องการ
+    }, 500); 
   };
 
   return (
-    <div>
+    <div className="container">
       <Bar data={chartData} options={chartOptions} />
-      <button 
-      className="!bg-gray-500 text-white font-semibold py-4
+      <button
+        className="!bg-gray-500 text-white font-semibold py-4
       rounded-md px-2
-      " 
-      onClick={startAnimation}>Start Animation</button>
+      "
+        onClick={startAnimation}
+      >
+        Start Animation
+      </button>
+      <h1>{currentYear}</h1>
     </div>
   );
 };
