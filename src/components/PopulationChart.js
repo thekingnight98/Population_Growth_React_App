@@ -24,6 +24,163 @@ Chart.register(
   ChartDataLabels
 );
 
+const asiaCountries = [
+  "Afghanistan",
+  "Armenia",
+  "Azerbaijan",
+  "Bangladesh",
+  "Bhutan",
+  "Brunei",
+  "Myanmar",
+  "Cambodia",
+  "China",
+  "Cyprus",
+  "Georgia",
+  "India",
+  "Indonesia",
+  "Iraq",
+  "Iran",
+  "Israel",
+  "Japan",
+  "Jordan",
+  "Kazakhstan",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Laos",
+  "Lebanon",
+  "Malaysia",
+  "Maldives",
+  "Mongolia",
+  "Nepal",
+  "Oman",
+  "Pakistan",
+  "Palestine",
+  "Philippines",
+  "Qatar",
+  "Russia",
+  "Saudi Arabia",
+  "Singapore",
+  "Sri Lanka",
+  "South Korea",
+  "North Korea",
+  "Thailand",
+  "Timor-Leste",
+  "Turkey",
+  "Turkmenistan",
+  "United Arab Emirates",
+  "Uzbekistan",
+  "Vietnam",
+  "Yemen",
+];
+
+const europeCountries = [
+  "Albania",
+  "Andorra",
+  "Armenia",
+  "Austria",
+  "Azerbaijan",
+  "Belarus",
+  "Belgium",
+  "Bosnia and Herzegovina",
+  "Bulgaria",
+  "Croatia",
+  "Cyprus",
+  "Czech Republic",
+  "Denmark",
+  "Estonia",
+  "Finland",
+  "France",
+  "Georgia",
+  "Germany",
+  "Greece",
+  "Hungary",
+  "Iceland",
+  "Ireland",
+  "Italy",
+  "Kazakhstan",
+  "Kosovo",
+  "Latvia",
+  "Liechtenstein",
+  "Lithuania",
+  "Luxembourg",
+  "Malta",
+  "Moldova",
+  "Monaco",
+  "Montenegro",
+  "Netherlands",
+  "North Macedonia",
+  "Norway",
+  "Poland",
+  "Portugal",
+  "Romania",
+  "Russia",
+  "San Marino",
+  "Serbia",
+  "Slovakia",
+  "Slovenia",
+  "Spain",
+  "Sweden",
+  "Switzerland",
+  "Turkey",
+  "Ukraine",
+  "United Kingdom",
+  "Vatican City",
+];
+
+const americasCountries = [
+  "Antigua and Barbuda",
+  "Argentina",
+  "Bahamas",
+  "Barbados",
+  "Belize",
+  "Bolivia",
+  "Brazil",
+  "Canada",
+  "Chile",
+  "Colombia",
+  "Costa Rica",
+  "Cuba",
+  "Dominica",
+  "Dominican Republic",
+  "Ecuador",
+  "El Salvador",
+  "Grenada",
+  "Guatemala",
+  "Guyana",
+  "Haiti",
+  "Honduras",
+  "Jamaica",
+  "Mexico",
+  "Nicaragua",
+  "Panama",
+  "Paraguay",
+  "Peru",
+  "Saint Kitts and Nevis",
+  "Saint Lucia",
+  "Saint Vincent and the Grenadines",
+  "Suriname",
+  "Trinidad and Tobago",
+  "United States",
+  "Uruguay",
+  "Venezuela",
+];
+const OceaniaCountries = [
+  "Australia",
+  "Fiji",
+  "Kiribati",
+  "Marshall Islands",
+  "Micronesia",
+  "Nauru",
+  "New Zealand",
+  "Palau",
+  "Papua New Guinea",
+  "Samoa",
+  "Solomon Islands",
+  "Tonga",
+  "Tuvalu",
+  "Vanuatu",
+];
+
 const PopulationChart = () => {
   const [chartData, setChartData] = useState({
     datasets: [],
@@ -193,14 +350,22 @@ const PopulationChart = () => {
       parseInt(item["Population"])
     );
 
+    const backgroundColors = labels.map((label) => {
+      if (asiaCountries.includes(label)) return "#6600FF"; // Asia
+      if (europeCountries.includes(label)) return "#6666FF"; // Europe
+      if (americasCountries.includes(label)) return "#FFCC33"; // Americas
+      if (OceaniaCountries.includes(label)) return "#CC6633"; // Oceania
+      return "#6666FF"; // Default color
+    });
+
     return {
       labels: labels,
       datasets: [
         {
           label: "",
           data: populationData,
-          backgroundColor: "rgba(53, 162, 235, 0.5)",
-          borderColor: "rgb(53, 162, 235)",
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors,
           borderWidth: 1,
         },
       ],
@@ -241,11 +406,15 @@ const PopulationChart = () => {
   }, [isPlaying, data]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container text-center">
+        กำลัง Loading API โปรดรอประมาณ 18 วินาที...
+      </div>
+    );
   }
 
   return (
-    <div className="container">
+    <div className="container max-w-screen-lg">
       <div>
         <div className="text-bold text-xl text-black">
           Population growth per country, 1950 to 2021
@@ -253,31 +422,35 @@ const PopulationChart = () => {
         <div className="text-xl text-gray-500">
           Click on the legend bellow to filter by continent
         </div>
-        <div className="md:flex lg:flex items-center justify-center gap-2">
+        <div className="md:flex lg:flex items-center gap-2">
           <div className="text-bold text-xl text-gray-800">Region</div>
           <div className="flex items-center gap-2 justify-center ">
-            <FaSquare />
+            <FaSquare color="#6600FF" />
             Asia
           </div>
           <div className="flex items-center gap-2 justify-center">
-            <FaSquare />
+            <FaSquare color="#6666FF" />
             Europe
           </div>
           <div className="flex items-center gap-2 justify-center">
-            <FaSquare />
+            <FaSquare color="#CC66FF" />
             Africa
           </div>
           <div className="flex items-center gap-2 justify-center">
-            <FaSquare />
+            <FaSquare color="#CC6633" />
             Oceania
           </div>
           <div className="flex items-center gap-2 justify-center">
-            <FaSquare />
+            <FaSquare color="#FFCC33" />
             Amercas
           </div>
         </div>
       </div>
-      <Bar data={chartData} options={chartOptions} />
+      <Bar
+        className="mt-4 max-w-screen-lg"
+        data={chartData}
+        options={chartOptions}
+      />
 
       <div className="flex items-center space-x-6 pl-20">
         <button
@@ -320,8 +493,8 @@ const PopulationChart = () => {
       </div>
 
       <div
-        className="absolute right-[420px] text-right 
-      top-[600px] w-[400px] bg-transparent]"
+        className="absolute text-right 
+      top-[400px] w-[400px] bg-transparent] right-[28%] md:right-[25%]"
       >
         <div className="">
           <div className="text-6xl font-bold text-gray-400">
