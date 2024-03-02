@@ -9,12 +9,20 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import { fetchCountries } from "../api";
 import { FaPlay, FaPause, FaCaretDown } from "react-icons/fa";
 import { FaSquare } from "react-icons/fa6";
 
-
-Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
 
 const PopulationChart = () => {
   const [chartData, setChartData] = useState({
@@ -69,19 +77,20 @@ const PopulationChart = () => {
       scales: {
         y: {
           title: {
-            display: true,
+            display: false,
             text: "Country",
           },
         },
         x: {
+          position: "top",
           title: {
-            display: true,
+            display: false,
             text: "Population",
           },
           ticks: {
             // แสดงแต่ละปีบนแกน X
             callback: function (value, index, values) {
-              return yearsRange[index];
+              return value.toLocaleString(); // แปลงค่าเป็น string ที่มี comma
             },
           },
         },
@@ -94,6 +103,17 @@ const PopulationChart = () => {
         title: {
           display: false,
           text: "Population Growth Per Country, 1950 to 2021",
+        },
+        datalabels: {
+          align: "end",
+          anchor: "end",
+          color: "#666",
+          font: {
+            weight: "bold",
+          },
+          formatter: function (value, context) {
+            return value.toLocaleString(); // แปลงค่าเป็น string ที่มี comma
+          },
         },
       },
     });
@@ -190,8 +210,8 @@ const PopulationChart = () => {
   const toggleAnimation = () => {
     if (currentYear >= 2021) {
       setCurrentYear(1950); // รีเซ็ตปีกลับไปเป็นปีเริ่มต้น
-      setWorldPopulation(worldPopulationByYear[1950] || 0); 
-  }
+      setWorldPopulation(worldPopulationByYear[1950] || 0);
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -221,7 +241,7 @@ const PopulationChart = () => {
   }, [isPlaying, data]);
 
   if (isLoading) {
-    return <div>Loading...</div>; 
+    return <div>Loading...</div>;
   }
 
   return (
@@ -299,13 +319,15 @@ const PopulationChart = () => {
         )}
       </div>
 
-      <div className="absolute right-[420px] text-right 
-      top-[600px] w-[400px] bg-transparent]">
+      <div
+        className="absolute right-[420px] text-right 
+      top-[600px] w-[400px] bg-transparent]"
+      >
         <div className="">
           <div className="text-6xl font-bold text-gray-400">
             <span>{currentYear}</span>
           </div>
-          <div  className="text-4xl font-bold text-gray-400 mt-2">
+          <div className="text-4xl font-bold text-gray-400 mt-2">
             Total: <span> {Number(worldPopulation).toLocaleString()}</span>
           </div>
         </div>
